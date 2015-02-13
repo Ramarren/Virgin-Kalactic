@@ -2,7 +2,7 @@ using System;
 using KSP;
 using UnityEngine;
 using System.Collections.Generic;
-using System.Data.Linq;
+using System.Linq;
 
 
 namespace NodeUtilities
@@ -44,8 +44,7 @@ namespace NodeUtilities
         private List<AttachNode> aNVisualList;
         //private Dictionary<string, bool> attachNodesStates = new Dictionary<string, bool>();
 
-        EditorVesselOverlays vesselOverlays;
-        Material crashTestNodeMaterial;
+        private Material crashTestNodeMaterial;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -54,7 +53,7 @@ namespace NodeUtilities
             {
                 if (aNList == null)
                 {
-                        MyDebugLog("Processing AttachNodes for: " + part.name);
+                    MyDebugLog("Processing AttachNodes for: " + part.name);
 
                     aNList = new List<AttachNode>(part.attachNodes);
                     MyDebugLog("Nodes: " + aNList.Count);
@@ -67,14 +66,21 @@ namespace NodeUtilities
                     }
                 }
 
+                try
+                {
+                    EditorVesselOverlays vesselOverlays = (EditorVesselOverlays)GameObject.FindObjectOfType(
+                        typeof(EditorVesselOverlays));
+
+                    crashTestNodeMaterial = vesselOverlays.CoMmarker.gameObject.renderer.material;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log("Exception while acquiring crashTestNodeMaterial: " + ex.ToString());
+                }
+
                 refreshANVisualList();
             }
 
-
-            vesselOverlays = (EditorVesselOverlays)GameObject.FindObjectOfType(
-                typeof(EditorVesselOverlays));
-
-            crashTestNodeMaterial = vesselOverlays.CoMmarker.gameObject.renderer.material;
             MyDebugLog("OnStart: end");
         }
 
@@ -123,7 +129,7 @@ namespace NodeUtilities
         private void createVisibleNode(AttachNode node)
         {
             MyDebugLog("createVisibleNode: " + node);
-            if (!Events[node.GetHashCode().ToString()].guiName.Contains("Inactive"))
+            if (crashTestNodeMaterial!=null && !Events[node.GetHashCode().ToString()].guiName.Contains("Inactive"))
             {
 
                 if (node.icon == null)
